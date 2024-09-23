@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../responces/api_result.dart';
+import '../response/api_result.dart';
 
 class ApicalRequest<T> {
   final Future<Response<dynamic>> Function(CancelToken cancelToken) _action;
