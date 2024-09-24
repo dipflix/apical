@@ -29,18 +29,12 @@ abstract base class ApicalResult<T> {
     }
   }
 
-  FutureOr<D?> when<D>({
+  FutureOr<D> when<D>({
     FutureOr<D> Function(T data)? success,
     FutureOr<D> Function(Failed<T> data)? onError,
     FutureOr<D> Function(CancelResponse data)? onCancel,
   }) {
-    return onError?.call(
-      Failed(
-        "Unhandled case",
-        stackTrace: StackTrace.current,
-        statusCode: statusCode,
-      ),
-    );
+    throw UnimplementedError();
   }
 }
 
@@ -53,20 +47,12 @@ final class Success<T> extends ApicalResult<T> {
   });
 
   @override
-  FutureOr<D?> when<D>({
+  FutureOr<D> when<D>({
     FutureOr<D> Function(T data)? success,
     FutureOr<D> Function(Failed<T> data)? onError,
     FutureOr<D> Function(CancelResponse data)? onCancel,
   }) {
-    if (success != null) {
-      return success(this.data);
-    }
-
-    return super.when(
-      success: success,
-      onError: onError,
-      onCancel: onCancel,
-    );
+    return success!(this.data);
   }
 }
 
@@ -83,11 +69,8 @@ base class Failed<T> extends ApicalResult<T> {
   static Failed<T> fromResponse<T>(Response<dynamic> response) {
     if (response.data is Map) {
       final Map<dynamic, dynamic> data = response.data;
-      if (data.containsKey("message")) {
-        return ServerError.fromResponse(response);
-      } else if (data.containsKey("errors")) {
-        return ServerFormError.fromResponse(response);
-      }
+
+      return ServerError.fromResponse(response);
     }
 
     final message = response.statusMessage ?? "Server error";
@@ -99,20 +82,12 @@ base class Failed<T> extends ApicalResult<T> {
   }
 
   @override
-  FutureOr<D?> when<D>({
+  FutureOr<D> when<D>({
     FutureOr<D> Function(T data)? success,
     FutureOr<D> Function(Failed<T> data)? onError,
     FutureOr<D> Function(CancelResponse data)? onCancel,
   }) {
-    if (onError != null) {
-      return onError(this);
-    }
-
-    return super.when(
-      success: success,
-      onError: onError,
-      onCancel: onCancel,
-    );
+    return onError!(this);
   }
 }
 
@@ -122,38 +97,12 @@ final class CancelResponse<T> extends ApicalResult<T> {
   });
 
   @override
-  FutureOr<D?> when<D>({
+  FutureOr<D> when<D>({
     FutureOr<D> Function(T data)? success,
     FutureOr<D> Function(Failed<T> data)? onError,
     FutureOr<D> Function(CancelResponse data)? onCancel,
   }) {
-    if (onCancel != null) {
-      return onCancel(this);
-    }
-
-    return super.when(
-      success: success,
-      onError: onError,
-      onCancel: onCancel,
-    );
-  }
-}
-
-final class ServerFormError<T> extends Failed<T> {
-  static const String _jsonNodeErrors = "errors";
-
-  ServerFormError(
-    super.errors, {
-    required super.statusCode,
-    required super.stackTrace,
-  });
-
-  static ServerFormError<T> fromResponse<T>(Response<dynamic> response) {
-    return ServerFormError(
-      response.data[_jsonNodeErrors],
-      stackTrace: StackTrace.fromString(response.statusMessage ?? ""),
-      statusCode: response.statusCode ?? -1,
-    );
+    return onCancel!(this);
   }
 }
 
