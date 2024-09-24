@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_annotating_with_dynamic, always_use_package_imports
-
 import 'dart:async';
 import 'dart:io';
 
@@ -36,21 +34,13 @@ abstract base class ApicalResult<T> {
     FutureOr<D> Function(Failed<T> data)? onError,
     FutureOr<D> Function(CancelResponse data)? onCancel,
   }) {
-    if (this is Success<T>) {
-      return success?.call((this as Success<T>).data);
-    } else if (this is Failed<T>) {
-      return onError?.call(this as Failed<T>);
-    } else if (this is CancelResponse) {
-      return onCancel?.call(this as CancelResponse);
-    } else {
-      return onError?.call(
-        Failed(
-          "Unhandled case",
-          stackTrace: StackTrace.current,
-          statusCode: statusCode,
-        ),
-      );
-    }
+    return onError?.call(
+      Failed(
+        "Unhandled case",
+        stackTrace: StackTrace.current,
+        statusCode: statusCode,
+      ),
+    );
   }
 }
 
@@ -61,15 +51,23 @@ final class Success<T> extends ApicalResult<T> {
     this.data, {
     required super.statusCode,
   });
-}
 
-final class SuccessPaginated<T> extends ApicalResult<T> {
-  final T data;
+  @override
+  FutureOr<D?> when<D>({
+    FutureOr<D> Function(T data)? success,
+    FutureOr<D> Function(Failed<T> data)? onError,
+    FutureOr<D> Function(CancelResponse data)? onCancel,
+  }) {
+    if (success != null) {
+      return success(this.data);
+    }
 
-  SuccessPaginated(
-    this.data, {
-    required super.statusCode,
-  });
+    return super.when(
+      success: success,
+      onError: onError,
+      onCancel: onCancel,
+    );
+  }
 }
 
 base class Failed<T> extends ApicalResult<T> {
@@ -99,12 +97,46 @@ base class Failed<T> extends ApicalResult<T> {
       stackTrace: StackTrace.fromString(message),
     );
   }
+
+  @override
+  FutureOr<D?> when<D>({
+    FutureOr<D> Function(T data)? success,
+    FutureOr<D> Function(Failed<T> data)? onError,
+    FutureOr<D> Function(CancelResponse data)? onCancel,
+  }) {
+    if (onError != null) {
+      return onError(this);
+    }
+
+    return super.when(
+      success: success,
+      onError: onError,
+      onCancel: onCancel,
+    );
+  }
 }
 
 final class CancelResponse<T> extends ApicalResult<T> {
   CancelResponse({
     required super.statusCode,
   });
+
+  @override
+  FutureOr<D?> when<D>({
+    FutureOr<D> Function(T data)? success,
+    FutureOr<D> Function(Failed<T> data)? onError,
+    FutureOr<D> Function(CancelResponse data)? onCancel,
+  }) {
+    if (onCancel != null) {
+      return onCancel(this);
+    }
+
+    return super.when(
+      success: success,
+      onError: onError,
+      onCancel: onCancel,
+    );
+  }
 }
 
 final class ServerFormError<T> extends Failed<T> {
