@@ -32,11 +32,13 @@ class ApicalRequest<T> {
       }
       return Failed(
         e.toString(),
+        stackTrace: e.stackTrace,
         statusCode: e.response?.statusCode ?? -1,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       return Failed(
-        e.toString(),
+        stackTrace,
+        stackTrace: stackTrace,
         statusCode: -1,
       );
     }

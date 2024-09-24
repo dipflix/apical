@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:apical/src/features/status_validator.dart';
 import 'package:dio/dio.dart';
 
-abstract class ApicalResult<T> {
+abstract base class ApicalResult<T> {
   final int statusCode;
 
   ApicalResult({
@@ -46,6 +46,7 @@ abstract class ApicalResult<T> {
       return onError?.call(
         Failed(
           "Unhandled case",
+          stackTrace: StackTrace.current,
           statusCode: statusCode,
         ),
       );
@@ -53,7 +54,7 @@ abstract class ApicalResult<T> {
   }
 }
 
-class Success<T> extends ApicalResult<T> {
+final class Success<T> extends ApicalResult<T> {
   final T data;
 
   Success(
@@ -62,7 +63,7 @@ class Success<T> extends ApicalResult<T> {
   });
 }
 
-class SuccessPaginated<T> extends ApicalResult<T> {
+final class SuccessPaginated<T> extends ApicalResult<T> {
   final T data;
 
   SuccessPaginated(
@@ -71,11 +72,13 @@ class SuccessPaginated<T> extends ApicalResult<T> {
   });
 }
 
-class Failed<T> extends ApicalResult<T> {
+base class Failed<T> extends ApicalResult<T> {
   dynamic errors;
+  final StackTrace stackTrace;
 
   Failed(
     this.errors, {
+    required this.stackTrace,
     required super.statusCode,
   });
 
@@ -89,63 +92,70 @@ class Failed<T> extends ApicalResult<T> {
       }
     }
 
+    final message = response.statusMessage ?? "Server error";
     return ServerError(
-      response.statusMessage ?? "Server error",
+      message,
       statusCode: response.statusCode ?? -1,
+      stackTrace: StackTrace.fromString(message),
     );
   }
 }
 
-class CancelResponse<T> extends ApicalResult<T> {
+final class CancelResponse<T> extends ApicalResult<T> {
   CancelResponse({
     required super.statusCode,
   });
 }
 
-class ServerFormError<T> extends Failed<T> {
+final class ServerFormError<T> extends Failed<T> {
   static const String _jsonNodeErrors = "errors";
 
   ServerFormError(
     super.errors, {
     required super.statusCode,
+    required super.stackTrace,
   });
 
   static ServerFormError<T> fromResponse<T>(Response<dynamic> response) {
     return ServerFormError(
       response.data[_jsonNodeErrors],
+      stackTrace: StackTrace.fromString(response.statusMessage ?? ""),
       statusCode: response.statusCode ?? -1,
     );
   }
 }
 
-class ServerError<T> extends Failed<T> {
+final class ServerError<T> extends Failed<T> {
   static const String _jsonNodeErrors = "message";
 
   ServerError(
     super.errors, {
     required super.statusCode,
+    required super.stackTrace,
   });
 
   static ServerError<T> fromResponse<T>(Response<dynamic> response) {
-    print(response.data);
     return ServerError(
       response.data[_jsonNodeErrors],
+      stackTrace: StackTrace.fromString(response.statusMessage ?? ""),
       statusCode: -1,
     );
   }
 }
 
-class NetworkError<T> extends Failed<T> {
+final class NetworkError<T> extends Failed<T> {
   NetworkError(
     super.errors, {
     required super.statusCode,
+    required super.stackTrace,
   });
 }
 
-class InternalError<T> extends Failed<T> {
+final class InternalError<T> extends Failed<T> {
   InternalError()
       : super(
           List.empty(),
+          stackTrace: StackTrace.current,
           statusCode: HttpStatus.internalServerError,
         );
 }
