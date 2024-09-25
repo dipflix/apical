@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../response/api_result.dart';
 
@@ -30,12 +31,17 @@ class ApicalRequest<T> {
           statusCode: -2,
         );
       }
+
+      debugPrint(e.message);
+      debugPrint(e.stackTrace.toString());
       return Failed(
         e,
         stackTrace: e.stackTrace,
         statusCode: e.response?.statusCode ?? -1,
       );
     } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(e.toString());
       return Failed(
         e,
         stackTrace: stackTrace,
