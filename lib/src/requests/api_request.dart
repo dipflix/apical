@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import '../response/api_result.dart';
 
@@ -32,16 +33,21 @@ class ApicalRequest<T> {
         );
       }
 
-      debugPrint(e.message);
-      debugPrint(e.stackTrace.toString());
+      if (kDebugMode) {
+        print(e);
+        print(e.stackTrace);
+      }
+
       return Failed(
         e,
         stackTrace: e.stackTrace,
         statusCode: e.response?.statusCode ?? -1,
       );
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(e.toString());
+      if (kDebugMode) {
+        print(e);
+        print(stackTrace);
+      }
       return Failed(
         e,
         stackTrace: stackTrace,
