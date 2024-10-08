@@ -1,7 +1,6 @@
 name: apical
 description: "Apical"
-version: 0.0.2
-
+version: 0.0.3
 
 environment:
   sdk: ^3.5.2
@@ -10,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  get_it: ^8.0.0
 
   dio: ^5.7.0
   dio_cache_interceptor: ^3.5.0
@@ -21,4 +19,3 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-flutter:
