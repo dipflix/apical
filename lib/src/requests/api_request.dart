@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import '../response/api_result.dart';
@@ -30,6 +29,9 @@ class ApicalRequest<T> {
       if (e.type == DioExceptionType.cancel) {
         return CancelResponse(
           statusCode: -2,
+          response: Response(
+            requestOptions: RequestOptions(),
+          ),
         );
       }
 
@@ -41,6 +43,7 @@ class ApicalRequest<T> {
       return Failed(
         e,
         stackTrace: e.stackTrace,
+        response: e.response,
         statusCode: e.response?.statusCode ?? -1,
       );
     } catch (e, stackTrace) {
@@ -50,6 +53,9 @@ class ApicalRequest<T> {
       }
       return Failed(
         e,
+        response: Response(
+          requestOptions: RequestOptions(),
+        ),
         stackTrace: stackTrace,
         statusCode: -1,
       );
