@@ -34,8 +34,8 @@ abstract base class ApicalResult<T> {
 
   FutureOr<D>? when<D>({
     FutureOr<D> Function(T data)? success,
-    FutureOr<D> Function(Failed<T> data)? onError,
-    FutureOr<D> Function(CancelResponse data)? onCancel,
+    FutureOr<D> Function(Failed<T> data)? failed,
+    FutureOr<D> Function(CancelResponse data)? canceled,
   }) {
     throw UnimplementedError();
   }
@@ -53,8 +53,8 @@ final class Success<T> extends ApicalResult<T> {
   @override
   FutureOr<D>? when<D>({
     FutureOr<D> Function(T data)? success,
-    FutureOr<D> Function(Failed<T> data)? onError,
-    FutureOr<D> Function(CancelResponse data)? onCancel,
+    FutureOr<D> Function(Failed<T> data)? failed,
+    FutureOr<D> Function(CancelResponse data)? canceled,
   }) {
     return success?.call(this.data);
   }
@@ -90,10 +90,10 @@ base class Failed<T> extends ApicalResult<T> {
   @override
   FutureOr<D>? when<D>({
     FutureOr<D> Function(T data)? success,
-    FutureOr<D> Function(Failed<T> data)? onError,
-    FutureOr<D> Function(CancelResponse data)? onCancel,
+    FutureOr<D> Function(Failed<T> data)? failed,
+    FutureOr<D> Function(CancelResponse data)? canceled,
   }) {
-    return onError?.call(this);
+    return failed?.call(this);
   }
 }
 
@@ -106,10 +106,10 @@ final class CancelResponse<T> extends ApicalResult<T> {
   @override
   FutureOr<D>? when<D>({
     FutureOr<D> Function(T data)? success,
-    FutureOr<D> Function(Failed<T> data)? onError,
-    FutureOr<D> Function(CancelResponse data)? onCancel,
+    FutureOr<D> Function(Failed<T> data)? failed,
+    FutureOr<D> Function(CancelResponse data)? canceled,
   }) {
-    return onCancel?.call(this);
+    return canceled?.call(this);
   }
 }
 
