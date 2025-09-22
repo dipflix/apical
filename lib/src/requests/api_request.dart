@@ -25,10 +25,9 @@ class ApicalRequest<T> {
       final response = await _action(_cancelToken!);
 
       return ApicalResult.map(response, _mapper);
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
       if (e.type == DioExceptionType.cancel) {
-        return CancelResponse(
-          statusCode: -2,
+        return ApicalResult.canceled(
           response: Response(
             requestOptions: RequestOptions(),
           ),
@@ -37,27 +36,24 @@ class ApicalRequest<T> {
 
       if (kDebugMode) {
         print(e);
-        print(e.stackTrace);
+        print(stackTrace);
       }
 
-      return Failed(
-        e,
-        stackTrace: e.stackTrace,
+      return ApicalResult.failed(
+        errors: e.response?.data ?? e.message ?? 'Error',
+        stackTrace: stackTrace,
         response: e.response,
-        statusCode: e.response?.statusCode ?? -1,
       );
     } catch (e, stackTrace) {
       if (kDebugMode) {
         print(e);
         print(stackTrace);
       }
-      return Failed(
-        e,
-        response: Response(
-          requestOptions: RequestOptions(),
-        ),
+
+      return ApicalResult.failed(
+        errors: e,
         stackTrace: stackTrace,
-        statusCode: -1,
+        response: Response(requestOptions: RequestOptions()),
       );
     }
   }
